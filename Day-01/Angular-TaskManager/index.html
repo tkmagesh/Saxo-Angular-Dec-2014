@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-ng-app>
 <head>
 	<meta charset="UTF-8">
 	<title>Task Manager</title>
@@ -12,19 +12,60 @@
 	}
 	</style>
 	<script type="text/javascript" src="angular.js"></script>
+	<script>
+	function Task(defaults){
+		this.name = defaults.name || "";
+		this.isCompleted = defaults.isCompleted || false;
+	}
+
+	Task.prototype.toggle = function(){
+		this.isCompleted = !this.isCompleted;
+	};
+
+	/*
+	window.localStorage
+		=> key/value store -> with both key and value should be string
+
+		-length 	-> number of items in store
+		-setItem(key,value)
+		-getItem(key)	-> value
+		-removeItem(key)
+		-key(index)		-> key at index
+		-clear()		-> clears the storage
+
+	*/
+
+	function TaskController($scope){
+		$scope.tasks = [];
+		$scope.addTask = function(taskName){
+			$scope.tasks.push(new Task({name : taskName, isCompleted : false}));
+		};
+		$scope.removeCompleted = function(){
+			$scope.tasks = $scope.tasks.filter(function(task){
+				return !task.isCompleted;
+			});
+		};
+		$scope.toggle = function(task){
+			task.toggle();
+		}
+	}
+	</script>
 </head>
-<body>
+<body data-ng-controller="TaskController">
 	<h1>Task Manager</h1>
+	<h3>[# of completed tasks / total # of tasks]</h3>
 	<hr>
 	<div>
 		<label for="">Task :</label>
-		<input type="text" name="" id="">
-		<input type="button" value="Add Task">
-		<input type="button" value="Remove Completed">
+		<input type="text" data-ng-model="newTask">
+		<input type="button" value="Add Task" data-ng-click="addTask(newTask)">
+		<input type="button" value="Remove Completed" data-ng-click="removeCompleted()">
 		<ol>
-			<li>Task - 1</li>
-			<li class="completed">Task - 2</li>
-			<li>Task - 3</li>
+			<li 
+				data-ng-repeat="task in tasks track by $index" 
+				data-ng-click="toggle(task)"
+				data-ng-class="{completed : task.isCompleted}"
+				>{{task}}</li>
 		</ol>
 	</div>
 </body>
