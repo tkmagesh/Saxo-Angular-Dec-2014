@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" ng-app>
+<head>
+	<meta charset="UTF-8">
+	<title>Angular Introduction</title>
+	<style>
+	input{
+		display : block;
+	}
+	</style>
+	<script src="angular.js"></script>
+</head>
+<body ng-init="firstName='Magesh'; lastName='Kuppan'">
+	<label>First Name:</label>
+	<input type="text" data-ng-model="firstName">
+	<label for="">Last Name:</label>
+	<input type="text" data-ng-model="lastName">
+
+	<input type="button" value="Greet" data-ng-click="greetMsg = 'Hi' + firstName + ' ' + lastName">
+	<div>{{greetMsg}}</div>
+</body>
+</html>
