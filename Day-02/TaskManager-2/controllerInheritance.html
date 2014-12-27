@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-ng-app="myApp">
+<head>
+	<meta charset="UTF-8">
+	<title>Controller Inheritence</title>
+	<style>
+	div{
+		padding : 10px;
+		margin : 10px;
+		border : 1px solid black;
+	}
+	.parent{
+		background-color: lightblue;
+	}
+	.child{
+		background-color: lightpink;
+	}
+	</style>
+	<script src="angular.js"></script>
+	<script>
+		angular
+			.module("myApp",[])
+			.controller("parentController", function($scope){
+
+			})
+			.controller("childController", function($scope){
+
+			})
+			.run(function($rootScope){
+				$rootScope.name = "Magesh";
+			});
+
+	</script>
+</head>
+<body>
+	<div class="parent" data-ng-controller="parentController">
+		<input type="text" data-ng-model="name">
+		<span>{{name}}</span>
+		<div class="child" data-ng-controller="childController">
+			<input type="text" data-ng-model="name">
+			<span>{{name}}</span>
+		</div>
+	</div>
+</body>
+</html>
