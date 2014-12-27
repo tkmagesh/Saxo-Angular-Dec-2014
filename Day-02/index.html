@@ -13,11 +13,11 @@
 	</style>
 	<script type="text/javascript" src="angular.js"></script>
 	<script>
-	var taskApp = angular.module("taskApp", []);
+	angular.module("taskApp", []);
 
-	taskApp.value("appStorage" , window.localStorage);
+	angular.module("taskApp").value("appStorage" , window.localStorage);
 
-	taskApp.factory("Task", function(){
+	angular.module("taskApp").factory("Task", function(){
 		function Task(defaults){
 			this.id = defaults.id || new Date().valueOf();
 			this.name = defaults.name || "";
@@ -30,7 +30,7 @@
 		return Task;
 	});
 
-	taskApp.service("taskStorage", function TaskStorage(appStorage, Task){
+	angular.module("taskApp").service("taskStorage", function TaskStorage(appStorage, Task){
 		
 		var storage = appStorage;
 		
@@ -50,7 +50,7 @@
 		}
 	})
 
-	taskApp.controller("TaskController", function ($scope, taskStorage, Task){
+	angular.module("taskApp").controller("TaskController", function ($scope, taskStorage, Task){
 		
 		//var taskStorage = new TaskStorage();
 
@@ -72,11 +72,19 @@
 			taskStorage.save(task);
 		}
 	});
+
+	angular.module("taskApp").filter("completedCount", function(){
+		return function(tasks){
+			return (tasks.filter(function(task){
+				return task.isCompleted;
+			})).length;
+		}
+	});
 	</script>
 </head>
 <body data-ng-controller="TaskController">
 	<h1>Task Manager</h1>
-	<h3>[# of completed tasks / total # of tasks]</h3>
+	<h3>[{{tasks | completedCount}} / {{tasks.length}}]</h3>
 	<hr>
 	<div>
 		<label for="">Task :</label>
