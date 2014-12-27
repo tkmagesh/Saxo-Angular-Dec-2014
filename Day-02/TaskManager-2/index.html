@@ -12,12 +12,15 @@
 	}
 	.edit{
 		width: 50%;
-		padding : 10px;
+		padding : 5px;
 		border : 2px solid black;
 		border-radius: 5px;
 	}
 	.edit label{
 		display : block;
+	}
+	th {
+		cursor: pointer;
 	}
 
 	</style>
@@ -36,6 +39,7 @@
 			this.category = defaults.category || "Official";
 			this.isCompleted = defaults.isCompleted || false;
 			this.createdAt = defaults.createdAt || new Date();
+			this.description = defaults.description || "";
 		}
 
 		Task.prototype.toggle = function(){
@@ -62,9 +66,30 @@
 			}
 			return result;
 		}
-	})
+	});
 
-	angular.module("taskApp").controller("TaskController", function ($scope, taskStorage, Task){
+	angular.module("taskApp").controller("TaskController", function($scope, taskStorage){
+
+		$scope.taskToEdit = null;
+		var originalTask = null;
+		$scope.setTaskToEdit = function(task){
+			originalTask = task;
+			$scope.taskToEdit = angular.copy(task);
+		};
+
+		$scope.update = function(){
+			angular.copy($scope.taskToEdit, originalTask);
+			taskStorage.save(originalTask);
+			originalTask = null;
+			$scope.taskToEdit = null;
+		};
+		$scope.cancel = function(){
+			originalTask = null;
+			$scope.taskToEdit = null;
+		}
+	});
+
+	angular.module("taskApp").controller("TaskListController", function ($scope, taskStorage, Task){
 		
 		//var taskStorage = new TaskStorage();
 		
@@ -86,8 +111,10 @@
 		};
 		$scope.removeCompleted = function(){
 			for(var i=$scope.tasks.length-1;i>=0;i--){
-				if ($scope.tasks[i].isCompleted)
+				if ($scope.tasks[i].isCompleted){
 					taskStorage.remove($scope.tasks[i]);
+					$scope.tasks.splice(i,1);
+				}
 			}
 		};
 		$scope.toggle = function(task){
@@ -95,10 +122,22 @@
 			taskStorage.save(task);
 		};
 
+		$scope.sortOrder = 'name';
+		$scope.descending = false;
+		$scope.setSortOrder = function(sortOrder){
+			if ($scope.sortOrder === sortOrder){
+				$scope.descending = !$scope.descending;
+			} else {
+				$scope.descending = false;
+				$scope.sortOrder = sortOrder;	
+			}
+			
+		}
+
 	});
 
-	angular.module("taskApp").controller("taskEditController", function($scope){
-
+	angular.module("taskApp").controller("TaskEditController", function($scope){
+		
 	});
 
 	angular.module("taskApp").filter("completedCount", function(){
@@ -117,80 +156,83 @@
 		}
 	});
 
-	angular.module("taskApp").filter("toMoment", function(){
-		return function(date){
-			return date;
-		}
-	});
-
-	
+		
 	</script>
 </head>
 <body  >
 	<h1>Task Manager</h1>
 	<div data-ng-controller="TaskController">
-		<h3>[{{tasks | completedCount:10}} / {{tasks.length}}]</h3>
-		<hr>
-		<div>
-			<label for="">Category :</label>
-			<input type="text" data-ng-model="newCategory">
-			<input type="button" value="Add Category" data-ng-click="addCategory(newCategory)">
-		</div>
-		<hr>
-		<div>
-			<label for="">Task :</label>
-			<input type="text" data-ng-model="newTask">
-			<select data-ng-model="taskCategory" data-ng-options="category as category for category in categories">
+		<div data-ng-controller="TaskListController">
+			<h3>[{{tasks | completedCount:10}} / {{tasks.length}}]</h3>
+			<hr>
+			<div>
+				<label for="">Category :</label>
+				<input type="text" data-ng-model="newCategory">
+				<input type="button" value="Add Category" data-ng-click="addCategory(newCategory)">
+			</div>
+			<hr>
+			<div>
+				<label for="">Task :</label>
+				<input type="text" data-ng-model="newTask">
+				<select data-ng-model="taskCategory" data-ng-options="category as category for category in categories">
+					
+				</select>
+				<input type="button" value="Add Task" data-ng-click="addTask(newTask, taskCategory)">
+				<input type="button" value="Remove Completed" data-ng-click="removeCompleted()">
 				
-			</select>
-			<input type="button" value="Add Task" data-ng-click="addTask(newTask, taskCategory)">
-			<input type="button" value="Remove Completed" data-ng-click="removeCompleted()">
+			</div>
+			<hr>
+			<h3>Task List</h3>
+			<div>
+				<span>Search :</span>
+				<input type="search" data-ng-model="searchTask.name">
+			</div>
+			<table style="width : 100%">
+				<tr>
+					<th data-ng-click="setSortOrder('name')">Name</th>
+					<th data-ng-click="setSortOrder('category')">Category</th>
+					<th data-ng-click="setSortOrder('isCompleted')">Status</th>
+					<th data-ng-click="setSortOrder('createdAt')">Created At</th>
+					<th></th>
+				</tr>
+				<tr data-ng-repeat="task in tasks | filter:searchTask | orderBy:sortOrder:descending">
+					<td data-ng-class="{completed : task.isCompleted}">{{task.name}}</td>
+					<td>{{task.category}}</td>
+					<td>{{task.isCompleted ? "Completed" : "In Progress"}}</td>
+					<td>{{task.createdAt | toMoment}}</td>
+					<td>
+						<input type="button" value="Edit" data-ng-click="setTaskToEdit(task)" >
+					</td>
+				</tr>
+			</table>
+			<!-- <div data-ng-repeat="category in categories" data-ng-show="(tasks|filter:{category: category}).length > 0">
+				<h3>{{category}}</h3>
+				<ol>
+					<li data-ng-repeat="task in tasks | filter:{category : category}">{{task.name}}</li>
+				</ol>
+			</div> -->
+		</div>
+		<div data-ng-controller="TaskEditController" class="edit" data-ng-show="taskToEdit !== null">
 			
+			<h3>Task</h3>
+			<div>
+				<label for="">Name :</label>
+				<input type="text" data-ng-model="taskToEdit.name">
+			</div>
+			<div>
+				<label for="">Description :</label>
+				<textarea cols="40" rows="10" data-ng-model="taskToEdit.description"></textarea>
+			</div>
+			<div>
+				<span>isCompleted?</span>
+				<input type="checkbox" data-ng-model="taskToEdit.isCompleted">
+			</div>
+			<div>
+				<input type="button" value="Save" data-ng-click="update()">
+				<input type="button" value="Cancel" data-ng-click="cancel()">
+			</div>
 		</div>
-		<hr>
-		<h3>Task List</h3>
-		<table style="width : 100%">
-			<tr>
-				<th>Name</th>
-				<th>Category</th>
-				<th>Status</th>
-				<th>Created At</th>
-				<th></th>
-			</tr>
-			<tr data-ng-repeat="task in tasks">
-				<td data-ng-class="{completed : task.isCompleted}">{{task.name}}</td>
-				<td>{{task.category}}</td>
-				<td>{{task.isCompleted ? "Completed" : "In Progress"}}</td>
-				<td>{{task.createdAt | toMoment}}</td>
-				<td>
-					<input type="button" value="Edit" >
-				</td>
-			</tr>
-		</table>
-		<!-- <div data-ng-repeat="category in categories" data-ng-show="(tasks|filter:{category: category}).length > 0">
-			<h3>{{category}}</h3>
-			<ol>
-				<li data-ng-repeat="task in tasks | filter:{category : category}">{{task.name}}</li>
-			</ol>
-		</div> -->
-	<div data-ng-controller="taskEditController" class="edit">
-		<h3>Task</h3>
-		<div>
-			<label for="">Name :</label>
-			<input type="text" name="" id="">
-		</div>
-		<div>
-			<label for="">Description :</label>
-			<textarea cols="40" rows="10"></textarea>
-		</div>
-		<div>
-			<span>isCompleted?</span>
-			<input type="checkbox">
-		</div>
-		<div>
-			<input type="button" value="Save">
-			<input type="button" value="Cancel">
-		</div>
+		
 	</div>
 </body>
 </html>
