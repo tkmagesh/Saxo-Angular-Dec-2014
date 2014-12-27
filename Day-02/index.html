@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" data-ng-app="taskApp">
+<head>
+	<meta charset="UTF-8">
+	<title>Task Manager</title>
+	<style>
+	.completed {
+		color : red;
+		text-decoration: line-through;
+		font-style: italic;
+		font-weight: bold;
+	}
+	</style>
+	<script type="text/javascript" src="angular.js"></script>
+	<script>
+	var taskApp = angular.module("taskApp", []);
+
+	taskApp.value("appStorage" , window.localStorage);
+
+	taskApp.factory("Task", function(){
+		function Task(defaults){
+			this.id = defaults.id || new Date().valueOf();
+			this.name = defaults.name || "";
+			this.isCompleted = defaults.isCompleted || false;
+		}
+
+		Task.prototype.toggle = function(){
+			this.isCompleted = !this.isCompleted;
+		};
+		return Task;
+	});
+
+	taskApp.service("taskStorage", function TaskStorage(appStorage, Task){
+		
+		var storage = appStorage;
+		
+		this.save = function(task){	
+			storage.setItem(task.id, window.JSON.stringify(task));
+		};
+		this.remove = function(task){
+			storage.removeItem(task.id);
+		};
+		this.getAll = function(){
+			var result = [];
+			for(var i=0;i<storage.length;i++){
+				var taskAsString = storage.getItem(storage.key(i));
+				result.push(new Task(window.JSON.parse(taskAsString)));
+			}
+			return result;
+		}
+	})
+
+	taskApp.controller("TaskController", function ($scope, taskStorage, Task){
+		
+		//var taskStorage = new TaskStorage();
+
+		$scope.tasks = taskStorage.getAll();
+		
+		$scope.addTask = function(taskName){
+			var newTask = new Task({name : taskName, isCompleted : false});
+			taskStorage.save(newTask);
+			$scope.tasks.push(newTask);
+		};
+		$scope.removeCompleted = function(){
+			for(var i=tasks.length-1;i>=0;i--){
+				if (tasks[i].isCompleted)
+					taskStorage.remove(tasks[i]);
+			}
+		};
+		$scope.toggle = function(task){
+			task.toggle();
+			taskStorage.save(task);
+		}
+	});
+	</script>
+</head>
+<body data-ng-controller="TaskController">
+	<h1>Task Manager</h1>
+	<h3>[# of completed tasks / total # of tasks]</h3>
+	<hr>
+	<div>
+		<label for="">Task :</label>
+		<input type="text" data-ng-model="newTask">
+		<input type="button" value="Add Task" data-ng-click="addTask(newTask)">
+		<input type="button" value="Remove Completed" data-ng-click="removeCompleted()">
+		<ol>
+			<li 
+				data-ng-repeat="task in tasks track by $index" 
+				data-ng-click="toggle(task)"
+				data-ng-class="{completed : task.isCompleted}"
+				>{{task}}</li>
+		</ol>
+	</div>
+</body>
+</html>
