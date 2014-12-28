@@ -89,7 +89,24 @@
 		}
 	});
 
-	angular.module("taskApp").controller("TaskListController", function ($scope, taskStorage, Task, $http){
+	angular.module("taskApp").service("taskService", function($http, Task, $q){
+		this.getAll = function($scope){
+			var deferred = $q.defer();
+			
+			var promise = $http({method : "get", url : "/tasks"});
+			promise.then(function(response){
+				var responseObj = response.data;
+				var tasks = responseObj.tasks.map(function(taskObj){
+					return new Task(taskObj);
+				});
+				deferred.resolve(tasks);
+			});
+			
+			return deferred.promise;
+		}
+	})
+
+	angular.module("taskApp").controller("TaskListController", function ($scope, taskStorage, Task, taskService){
 		
 		/*
 		//from Storage
@@ -99,20 +116,22 @@
 				return seed;
 			}, {}));
 		*/
-		
 		$scope.tasks = [];
-
 		$scope.categories = []; 
-
-		var promise = $http({method : "get", url : "/tasks"});
-		promise.then(function(response){
-			var responseObj = response.data;
-			$scope.tasks = responseObj.tasks;
-			$scope.categories = Object.keys($scope.tasks.reduce(function(seed, task){
+		/*
+		$scope.categories = Object.keys($scope.tasks.reduce(function(seed, task){
 				seed[task.category] = seed[task.category] || 0;
 				return seed;
 			}, {}));
+		*/
+		taskService.getAll().then(function(tasks){
+			$scope.tasks = tasks;
+			$scope.categories = $scope.categories.concat(Object.keys($scope.tasks.reduce(function(seed, task){
+				seed[task.category] = seed[task.category] || 0;
+				return seed;
+			}, {})));
 		});
+		
 
 		$scope.addCategory = function(newCategory){
 			$scope.categories.push(newCategory);
