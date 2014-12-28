@@ -1,0 +1,22 @@
+{
+  "name": "Routing",
+  "version": "0.1.0",
+  "homepage": "https://github.com/tkmagesh/Saxo-Angular-Dec-2014",
+  "authors": [
+    "tkmagesh <tkmagesh77@gmail.com>"
+  ],
+  "description": "A sample app for routing",
+  "main": "index.html",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.3.8",
+    "jquery": "~2.1.3"
+  }
+}

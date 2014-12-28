@@ -10,7 +10,7 @@
 		.module("myApp", ["ngRoute"])
 		.config(function($routeProvider){
 			$routeProvider
-				.when("/products/:productId", {
+				.when("/products/:category/:productId", {
 					templateUrl : "products.tmpl.html",
 					controller : "productsController"
 				})
